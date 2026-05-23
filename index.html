@@ -15,6 +15,11 @@
             --border: #e2e8f0;
             --accent: #b45309;
             --accent-bg: #fef3c7;
+            --badge-bg: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -22,12 +27,16 @@
             background-color: var(--bg);
             color: var(--text);
             line-height: 1.5;
-            padding: 2rem 1rem;
+            padding: 1rem 0.5rem;
             margin: 0;
         }
 
+        @media (min-width: 640px) {
+            body { padding: 2rem 1rem; }
+        }
+
         .container {
-            max-width: 800px;
+            max-width: 650px;
             margin: 0 auto;
         }
 
@@ -35,54 +44,61 @@
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 2rem;
+            padding: 1.25rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .card { padding: 2rem; }
         }
 
         h1 {
             color: var(--primary);
             margin-top: 0;
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             border-bottom: 2px solid var(--border);
             padding-bottom: 0.5rem;
         }
 
         h2 {
             color: var(--primary);
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             margin-top: 1.5rem;
             margin-bottom: 1rem;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
         }
 
-        @media (max-width: 600px) {
-            .grid { grid-template-columns: 1fr; }
+        @media (min-width: 480px) {
+            .grid { grid-template-columns: 1fr 1fr; }
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.35rem;
         }
 
         label {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: var(--text);
         }
 
         input[type="number"], select {
-            padding: 0.65rem;
+            padding: 0.75rem;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 1rem;
             background: var(--bg);
             color: var(--text);
+            width: 100%;
+            -webkit-appearance: none; /* Mobile Safari fix */
         }
 
         input:focus, select:focus {
@@ -92,29 +108,47 @@
 
         .radio-group {
             display: flex;
-            gap: 1rem;
+            gap: 1.5rem;
             margin-top: 0.25rem;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: normal;
+            cursor: pointer;
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            gap: 0.75rem;
+            margin-top: 0.25rem;
+            font-size: 1rem;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: 1.2rem;
+            height: 1.2rem;
         }
 
         button {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.9rem;
             font-size: 1rem;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             width: 100%;
             margin-top: 1.5rem;
             transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         button:hover {
@@ -128,31 +162,84 @@
             padding: 1rem;
             border-radius: 8px;
             margin-bottom: 1.5rem;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .hidden { display: none; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        /* --- MOBILE OUTCOME CARDS REPLACING TABLE --- */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
             margin-top: 1rem;
         }
 
-        th, td {
-            text-align: left;
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border);
+        .result-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
-        th {
-            background-color: #f1f5f9;
-            font-weight: 600;
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 0.5rem;
         }
 
-        .total-row {
+        .result-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .result-amount {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--primary);
+        }
+
+        .result-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .badge {
+            background: var(--badge-bg);
+            color: var(--text-light);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .badge-type {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .result-total-card {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
             font-weight: bold;
-            background-color: #f8fafc;
+        }
+        
+        .result-total-card span {
+            color: #166534;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -165,7 +252,6 @@
         <div id="validationAlert" class="alert hidden"></div>
 
         <form id="inheritanceForm" onsubmit="calculateEstate(event)">
-            <!-- Step 1: Financial Inputs -->
             <h2>1. Estate & Bequests</h2>
             <div class="grid">
                 <div class="form-group">
@@ -181,12 +267,11 @@
                     <input type="number" id="wills" min="0" value="0">
                 </div>
                 <div class="form-group">
-                    <label for="sadakah">Sadakah Jariyah / Charity requests</label>
+                    <label for="sadakah">Sadakah Jariyah / Charity</label>
                     <input type="number" id="sadakah" min="0" value="0">
                 </div>
             </div>
 
-            <!-- Step 2: Deceased Info -->
             <h2>2. Deceased Details</h2>
             <div class="grid">
                 <div class="form-group">
@@ -198,7 +283,6 @@
                 </div>
             </div>
 
-            <!-- Step 3: Surviving Relatives -->
             <h2>3. Surviving Primary Heirs</h2>
             <div class="grid">
                 <div class="form-group" id="wifeGroup">
@@ -234,25 +318,18 @@
         </form>
     </div>
 
-    <!-- Output Breakdown Card -->
+    <!-- Output Mobile Card Deck Container -->
     <div id="resultCard" class="card hidden">
         <h1>Distribution Breakdown</h1>
         <div id="breakdownSummary"></div>
         
-        <table>
-            <thead>
-                <tr>
-                    <th>Recipient / Allocation</th>
-                    <th>Type</th>
-                    <th>Share Fraction</th>
-                    <th>Percentage</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody id="resultTableBody">
-                <!-- Calculated rows inject here -->
-            </tbody>
-        </table>
+        <!-- Mobile card list replaces the old table tag structure entirely -->
+        <div class="results-list" id="mobileResultsContainer"></div>
+        
+        <div class="result-total-card">
+            <span>Total Asset Pool</span>
+            <span id="finalTotalDisplay">0.00</span>
+        </div>
     </div>
 </div>
 
@@ -279,7 +356,6 @@ function calculateEstate(event) {
     const alertBox = document.getElementById('validationAlert');
     alertBox.classList.add('hidden');
     
-    // 1. Gather Basic Values
     const totalEstate = parseFloat(document.getElementById('totalEstate').value) || 0;
     const debts = parseFloat(document.getElementById('debts').value) || 0;
     let wills = parseFloat(document.getElementById('wills').value) || 0;
@@ -296,7 +372,6 @@ function calculateEstate(event) {
     const maxBequestAllowed = netAfterDebts / 3;
     
     let bequestWarning = "";
-    // Rule: Total wills and voluntary charities combined cannot exceed 1/3 of net estate without heirs' consent
     if (requestedBequests > maxBequestAllowed) {
         bequestWarning = `Note: The requested Will and Sadakah combined (${requestedBequests.toFixed(2)}) exceeded the maximum legal 1/3 threshold (${maxBequestAllowed.toFixed(2)}). They have been capped at 1/3 per Shariah rules unless all adult heirs manually consent.`;
         const ratio = maxBequestAllowed / requestedBequests;
@@ -306,7 +381,6 @@ function calculateEstate(event) {
 
     const netFaraidEstate = netAfterDebts - (wills + sadakah);
 
-    // 2. Fetch Family Inputs
     const gender = document.querySelector('input[name="gender"]:checked').value;
     const wivesCount = parseInt(document.getElementById('wivesCount').value) || 0;
     const husbandExists = document.getElementById('husbandExists').checked;
@@ -317,21 +391,18 @@ function calculateEstate(event) {
 
     const hasChildren = (sonsCount > 0 || daughtersCount > 0);
 
-    // 3. Mathematical Share Calculations (Ashab al-Furud)
     let rows = [];
     
-    // Add Pre-Faraid allocations
-    if (debts > 0) rows.push({ name: "Debts & Funeral Liabilities", type: "Obligatory Pre-Share", fraction: "-", pct: (debts/totalEstate)*100, amt: debts });
-    if (wills > 0) rows.push({ name: "Will Bequests (Wasiyyah)", type: "Voluntary Gift Limit", fraction: "-", pct: (wills/totalEstate)*100, amt: wills });
-    if (sadakah > 0) rows.push({ name: "Sadakah Jariyah requests", type: "Voluntary Gift Limit", fraction: "-", pct: (sadakah/totalEstate)*100, amt: sadakah });
+    if (debts > 0) rows.push({ name: "Debts & Funeral Liabilities", type: "Obligatory Liability", fraction: "Pre-Share Deduction", pct: (debts/totalEstate)*100, amt: debts });
+    if (wills > 0) rows.push({ name: "Will Bequests (Wasiyyah)", type: "Voluntary Legacy", fraction: "Up to 1/3 limit", pct: (wills/totalEstate)*100, amt: wills });
+    if (sadakah > 0) rows.push({ name: "Sadakah Jariyah Requests", type: "Voluntary Legacy", fraction: "Up to 1/3 limit", pct: (sadakah/totalEstate)*100, amt: sadakah });
 
     let fixedSharesTotal = 0;
     let mathAllocations = [];
 
-    // Spousal calculation
     if (gender === 'male' && wivesCount > 0) {
         const wifeFraction = hasChildren ? (1/8) : (1/4);
-        mathAllocations.push({ id: 'wives', name: `Wife/Wives (Shared among ${wivesCount})`, baseFraction: wifeFraction, individualCount: wivesCount });
+        mathAllocations.push({ id: 'wives', name: `Wife/Wives (Shared between ${wivesCount})`, baseFraction: wifeFraction, individualCount: wivesCount });
         fixedSharesTotal += wifeFraction;
     } else if (gender === 'female' && husbandExists) {
         const husbandFraction = hasChildren ? (1/4) : (1/2);
@@ -339,16 +410,13 @@ function calculateEstate(event) {
         fixedSharesTotal += husbandFraction;
     }
 
-    // Mother calculation
     if (motherExists) {
         const motherFraction = hasChildren ? (1/6) : (1/3);
         mathAllocations.push({ id: 'mother', name: "Mother", baseFraction: motherFraction, individualCount: 1 });
         fixedSharesTotal += motherFraction;
     }
 
-    // Father base calculation 
     if (fatherExists) {
-        // If there are sons, father gets exactly 1/6. If no sons, father takes 1/6 primary + acts as residuary.
         const fatherBaseFraction = hasChildren ? (1/6) : 0; 
         if (fatherBaseFraction > 0) {
             mathAllocations.push({ id: 'father', name: "Father (Fixed Share)", baseFraction: fatherBaseFraction, individualCount: 1 });
@@ -356,55 +424,41 @@ function calculateEstate(event) {
         }
     }
 
-    // 4. Handle Awl adjustments if fixed shares exceed 1.0
     let scaleFactor = 1.0;
     if (fixedSharesTotal > 1.0) {
         scaleFactor = 1.0 / fixedSharesTotal;
         bequestWarning += " Proportional reduction (Awl) was applied because the primary Quranic fractions exceeded 1.0.";
     }
 
-    // Process Fixed Shares into results
     let distributedFaraidAmount = 0;
     mathAllocations.forEach(alloc => {
         const finalFraction = alloc.baseFraction * scaleFactor;
         const totalAllocAmt = netFaraidEstate * finalFraction;
         distributedFaraidAmount += totalAllocAmt;
 
-        if (alloc.id === 'wives') {
-            rows.push({
-                name: alloc.name,
-                type: "Quranic Heir",
-                fraction: `${alloc.individualCount === 1 ? '' : 'Total '} ${formatFraction(alloc.baseFraction)}`,
-                pct: (totalAllocAmt / totalEstate) * 100,
-                amt: totalAllocAmt
-            });
-        } else {
-            rows.push({
-                name: alloc.name,
-                type: "Quranic Heir",
-                fraction: formatFraction(alloc.baseFraction),
-                pct: (totalAllocAmt / totalEstate) * 100,
-                amt: totalAllocAmt
-            });
-        }
+        rows.push({
+            name: alloc.name,
+            type: "Quranic Fixed Heir",
+            fraction: `Base Share: ${formatFraction(alloc.baseFraction)}`,
+            pct: (totalAllocAmt / totalEstate) * 100,
+            amt: totalAllocAmt
+        });
     });
 
-    // 5. Residue Distribution (Asabah)
     let residueLeft = netFaraidEstate - distributedFaraidAmount;
-    if (residueLeft < 0.01) residueLeft = 0; // Fix floating point precision
+    if (residueLeft < 0.01) residueLeft = 0;
 
     if (residueLeft > 0) {
         if (sonsCount > 0 || daughtersCount > 0) {
-            // Sons get twice the share of daughters
             const totalParts = (sonsCount * 2) + (daughtersCount * 1);
             const partValue = residueLeft / totalParts;
 
             if (sonsCount > 0) {
                 const totalSonsAmt = partValue * 2 * sonsCount;
                 rows.push({
-                    name: `Sons (${sonsCount} individual${sonsCount > 1 ? 's' : ''})`,
-                    type: "Residuary (2x ratio)",
-                    fraction: "Residue Remainder",
+                    name: `Sons (${sonsCount})`,
+                    type: "Residuary Heir",
+                    fraction: "2x Ratio Split of Residue",
                     pct: (totalSonsAmt / totalEstate) * 100,
                     amt: totalSonsAmt
                 });
@@ -412,25 +466,23 @@ function calculateEstate(event) {
             if (daughtersCount > 0) {
                 const totalDaughtersAmt = partValue * 1 * daughtersCount;
                 rows.push({
-                    name: `Daughters (${daughtersCount} individual${daughtersCount > 1 ? 's' : ''})`,
-                    type: "Residuary (1x ratio)",
-                    fraction: "Residue Remainder",
+                    name: `Daughters (${daughtersCount})`,
+                    type: "Residuary Heir",
+                    fraction: "1x Ratio Split of Residue",
                     pct: (totalDaughtersAmt / totalEstate) * 100,
                     amt: totalDaughtersAmt
                 });
             }
         } else if (fatherExists) {
-            // If no children exist, the father absorbs the entire remaining residue
             rows.push({
                 name: "Father (Asabah Residuary)",
                 type: "Residuary Heir",
-                fraction: "Remaining Residue",
+                fraction: "Absorbs Remaining Residue",
                 pct: (residueLeft / totalEstate) * 100,
                 amt: residueLeft
             });
         } else {
-            // Simple Radd (return) fallback simulation for primary configuration
-            const nonSpouseRows = rows.filter(r => r.type === "Quranic Heir" && !r.name.includes("Wife") && !r.name.includes("Husband"));
+            const nonSpouseRows = rows.filter(r => r.type.includes("Quranic") && !r.name.includes("Wife") && !r.name.includes("Husband"));
             if (nonSpouseRows.length > 0) {
                 bequestWarning += " Surplus residue returned to primary blood relations via Radd mechanism.";
                 nonSpouseRows.forEach(r => {
@@ -441,41 +493,38 @@ function calculateEstate(event) {
         }
     }
 
-    // 6. Output Generation
+    // Render Logic Updates
     const summaryContainer = document.getElementById('breakdownSummary');
     summaryContainer.innerHTML = bequestWarning ? `<div class="alert">${bequestWarning}</div>` : '';
     summaryContainer.innerHTML += `
-        <p><strong>Initial Estate Value:</strong> ${totalEstate.toFixed(2)}<br>
-        <strong>Net Distributed Estate (Faraid):</strong> ${netFaraidEstate.toFixed(2)}</p>
+        <p style="font-size:0.9rem; margin-bottom: 1rem; color: var(--text-light)">
+            <strong>Initial Estate Pool:</strong> ${totalEstate.toLocaleString(undefined, {minimumFractionDigits: 2})}<br>
+            <strong>Net Heritage Pool (Faraid):</strong> ${netFaraidEstate.toLocaleString(undefined, {minimumFractionDigits: 2})}
+        </p>
     `;
 
-    const tbody = document.getElementById('resultTableBody');
-    tbody.innerHTML = "";
+    const cardContainer = document.getElementById('mobileResultsContainer');
+    cardContainer.innerHTML = "";
     
+    // Inject custom UI item wrappers
     rows.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${row.name}</strong></td>
-            <td>${row.type}</td>
-            <td>${row.fraction}</td>
-            <td>${row.pct.toFixed(2)}%</td>
-            <td><strong>${row.amt.toFixed(2)}</strong></td>
+        const item = document.createElement('div');
+        item.className = "result-item";
+        item.innerHTML = `
+            <div class="result-header">
+                <span class="result-title">${row.name}</span>
+                <span class="result-amount">${row.amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+            <div class="result-meta">
+                <span class="badge badge-type">${row.type}</span>
+                <span class="badge">${row.fraction}</span>
+                <span class="badge">${row.pct.toFixed(2)}% of Gross</span>
+            </div>
         `;
-        tbody.appendChild(tr);
+        cardContainer.appendChild(item);
     });
 
-    // Add total matching confirmation row
-    const totalRow = document.createElement('tr');
-    totalRow.className = "total-row";
-    totalRow.innerHTML = `
-        <td>Total Accounted Asset Pool</td>
-        <td>-</td>
-        <td>100%</td>
-        <td>100.00%</td>
-        <td>${totalEstate.toFixed(2)}</td>
-    `;
-    tbody.appendChild(totalRow);
-
+    document.getElementById('finalTotalDisplay').textContent = totalEstate.toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('resultCard').classList.remove('hidden');
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
 }
