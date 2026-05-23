@@ -30,10 +30,11 @@ Since this is a fully self-contained application, it requires no external framew
 
 The calculator processes user input using the exact sequence prescribed in Islamic jurisprudence:
 
-$$\text{Gross Estate} \xrightarrow{-\text{Debts/Funeral}} \text{Net Estate} \xrightarrow{-\text{Bequests (Max 1/3)}} \text{Net Faraid Pool} \rightarrow \text{Fixed Heirs} \rightarrow \text{Residuary Heirs}$$
+$$\text{Gross Estate} \xrightarrow{-\text{Debts/Funeral}} \text{Net Estate} \xrightarrow{-\text{Bequests (Max 1/3)}} \text{Net Faraid Pool} \rightarrow \text{Fixed Heirs}
+\rightarrow \text{Residuary Heirs}$$
 
 1.  **Net Estate Assessment:** 
-    $$\text{Net Estate} = \text{Total Estate} - \text{Funeral \& Debts}$$
+    $$\text{Net Estate} = \text{Total Estate} - \text{Funeral \Debts}$$
 2.  **Bequest Threshold Verification:**
     $$\text{Max Allowed Bequest} = \frac{\text{Net Estate}}{3}$$
     If $\text{Wills} + \text{Sadakah} > \text{Max Allowed}$, the app applies a scale factor to cap them at the maximum boundary:
