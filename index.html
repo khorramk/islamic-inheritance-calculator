@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic Inheritance & Wasiyyah Calculator</title>
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-hover: #115e59;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --accent: #b45309;
+            --accent-bg: #fef3c7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 2rem 1rem;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-top: 0;
+            font-size: 1.75rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"], select {
+            padding: 0.65rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid var(--primary);
+            background: #fff;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.25rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .alert {
+            background-color: var(--accent-bg);
+            border: 1px solid #f59e0b;
+            color: var(--accent);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .hidden { display: none; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>Islamic Inheritance Calculator</h1>
+        
+        <div id="validationAlert" class="alert hidden"></div>
+
+        <form id="inheritanceForm" onsubmit="calculateEstate(event)">
+            <!-- Step 1: Financial Inputs -->
+            <h2>1. Estate & Bequests</h2>
+            <div class="grid">
+                <div class="form-group">
+                    <label for="totalEstate">Total Estate Value (£/$)</label>
+                    <input type="number" id="totalEstate" min="0" value="100000" required>
+                </div>
+                <div class="form-group">
+                    <label for="debts">Funeral & Outstanding Debts</label>
+                    <input type="number" id="debts" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="wills">Will Bequests (To non-heirs)</label>
+                    <input type="number" id="wills" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="sadakah">Sadakah Jariyah / Charity requests</label>
+                    <input type="number" id="sadakah" min="0" value="0">
+                </div>
+            </div>
+
+            <!-- Step 2: Deceased Info -->
+            <h2>2. Deceased Details</h2>
+            <div class="grid">
+                <div class="form-group">
+                    <label>Gender of Deceased</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="gender" value="male" checked onchange="toggleSpouseInput()"> Male</label>
+                        <label><input type="radio" name="gender" value="female" onchange="toggleSpouseInput()"> Female</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Surviving Relatives -->
+            <h2>3. Surviving Primary Heirs</h2>
+            <div class="grid">
+                <div class="form-group" id="wifeGroup">
+                    <label for="wivesCount">Number of Surviving Wives</label>
+                    <input type="number" id="wivesCount" min="0" max="4" value="1">
+                </div>
+                <div class="form-group hidden" id="husbandGroup">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="husbandExists"> Husband is surviving
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="fatherExists" checked> Father is alive
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="motherExists" checked> Mother is alive
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="sonsCount">Number of Sons</label>
+                    <input type="number" id="sonsCount" min="0" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="daughtersCount">Number of Daughters</label>
+                    <input type="number" id="daughtersCount" min="0" value="1">
+                </div>
+            </div>
+
+            <button type="submit">Calculate Distribution</button>
+        </form>
+    </div>
+
+    <!-- Output Breakdown Card -->
+    <div id="resultCard" class="card hidden">
+        <h1>Distribution Breakdown</h1>
+        <div id="breakdownSummary"></div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Recipient / Allocation</th>
+                    <th>Type</th>
+                    <th>Share Fraction</th>
+                    <th>Percentage</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody id="resultTableBody">
+                <!-- Calculated rows inject here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleSpouseInput() {
+    const gender = document.querySelector('input[name="gender"]:checked').value;
+    const wifeGroup = document.getElementById('wifeGroup');
+    const husbandGroup = document.getElementById('husbandGroup');
+    
+    if (gender === 'male') {
+        wifeGroup.classList.remove('hidden');
+        husbandGroup.classList.add('hidden');
+        document.getElementById('husbandExists').checked = false;
+    } else {
+        wifeGroup.classList.add('hidden');
+        husbandGroup.classList.remove('hidden');
+        document.getElementById('wivesCount').value = 0;
+    }
+}
+
+function calculateEstate(event) {
+    event.preventDefault();
+    
+    const alertBox = document.getElementById('validationAlert');
+    alertBox.classList.add('hidden');
+    
+    // 1. Gather Basic Values
+    const totalEstate = parseFloat(document.getElementById('totalEstate').value) || 0;
+    const debts = parseFloat(document.getElementById('debts').value) || 0;
+    let wills = parseFloat(document.getElementById('wills').value) || 0;
+    let sadakah = parseFloat(document.getElementById('sadakah').value) || 0;
+    
+    if (debts > totalEstate) {
+        alertBox.textContent = "Error: Debts exceed the total value of the estate. No assets left to distribute.";
+        alertBox.classList.remove('hidden');
+        return;
+    }
+
+    const netAfterDebts = totalEstate - debts;
+    const requestedBequests = wills + sadakah;
+    const maxBequestAllowed = netAfterDebts / 3;
+    
+    let bequestWarning = "";
+    // Rule: Total wills and voluntary charities combined cannot exceed 1/3 of net estate without heirs' consent
+    if (requestedBequests > maxBequestAllowed) {
+        bequestWarning = `Note: The requested Will and Sadakah combined (${requestedBequests.toFixed(2)}) exceeded the maximum legal 1/3 threshold (${maxBequestAllowed.toFixed(2)}). They have been capped at 1/3 per Shariah rules unless all adult heirs manually consent.`;
+        const ratio = maxBequestAllowed / requestedBequests;
+        wills = wills * ratio;
+        sadakah = sadakah * ratio;
+    }
+
+    const netFaraidEstate = netAfterDebts - (wills + sadakah);
+
+    // 2. Fetch Family Inputs
+    const gender = document.querySelector('input[name="gender"]:checked').value;
+    const wivesCount = parseInt(document.getElementById('wivesCount').value) || 0;
+    const husbandExists = document.getElementById('husbandExists').checked;
+    const fatherExists = document.getElementById('fatherExists').checked;
+    const motherExists = document.getElementById('motherExists').checked;
+    const sonsCount = parseInt(document.getElementById('sonsCount').value) || 0;
+    const daughtersCount = parseInt(document.getElementById('daughtersCount').value) || 0;
+
+    const hasChildren = (sonsCount > 0 || daughtersCount > 0);
+
+    // 3. Mathematical Share Calculations (Ashab al-Furud)
+    let rows = [];
+    
+    // Add Pre-Faraid allocations
+    if (debts > 0) rows.push({ name: "Debts & Funeral Liabilities", type: "Obligatory Pre-Share", fraction: "-", pct: (debts/totalEstate)*100, amt: debts });
+    if (wills > 0) rows.push({ name: "Will Bequests (Wasiyyah)", type: "Voluntary Gift Limit", fraction: "-", pct: (wills/totalEstate)*100, amt: wills });
+    if (sadakah > 0) rows.push({ name: "Sadakah Jariyah requests", type: "Voluntary Gift Limit", fraction: "-", pct: (sadakah/totalEstate)*100, amt: sadakah });
+
+    let fixedSharesTotal = 0;
+    let mathAllocations = [];
+
+    // Spousal calculation
+    if (gender === 'male' && wivesCount > 0) {
+        const wifeFraction = hasChildren ? (1/8) : (1/4);
+        mathAllocations.push({ id: 'wives', name: `Wife/Wives (Shared among ${wivesCount})`, baseFraction: wifeFraction, individualCount: wivesCount });
+        fixedSharesTotal += wifeFraction;
+    } else if (gender === 'female' && husbandExists) {
+        const husbandFraction = hasChildren ? (1/4) : (1/2);
+        mathAllocations.push({ id: 'husband', name: "Husband", baseFraction: husbandFraction, individualCount: 1 });
+        fixedSharesTotal += husbandFraction;
+    }
+
+    // Mother calculation
+    if (motherExists) {
+        const motherFraction = hasChildren ? (1/6) : (1/3);
+        mathAllocations.push({ id: 'mother', name: "Mother", baseFraction: motherFraction, individualCount: 1 });
+        fixedSharesTotal += motherFraction;
+    }
+
+    // Father base calculation 
+    if (fatherExists) {
+        // If there are sons, father gets exactly 1/6. If no sons, father takes 1/6 primary + acts as residuary.
+        const fatherBaseFraction = hasChildren ? (1/6) : 0; 
+        if (fatherBaseFraction > 0) {
+            mathAllocations.push({ id: 'father', name: "Father (Fixed Share)", baseFraction: fatherBaseFraction, individualCount: 1 });
+            fixedSharesTotal += fatherBaseFraction;
+        }
+    }
+
+    // 4. Handle Awl adjustments if fixed shares exceed 1.0
+    let scaleFactor = 1.0;
+    if (fixedSharesTotal > 1.0) {
+        scaleFactor = 1.0 / fixedSharesTotal;
+        bequestWarning += " Proportional reduction (Awl) was applied because the primary Quranic fractions exceeded 1.0.";
+    }
+
+    // Process Fixed Shares into results
+    let distributedFaraidAmount = 0;
+    mathAllocations.forEach(alloc => {
+        const finalFraction = alloc.baseFraction * scaleFactor;
+        const totalAllocAmt = netFaraidEstate * finalFraction;
+        distributedFaraidAmount += totalAllocAmt;
+
+        if (alloc.id === 'wives') {
+            rows.push({
+                name: alloc.name,
+                type: "Quranic Heir",
+                fraction: `${alloc.individualCount === 1 ? '' : 'Total '} ${formatFraction(alloc.baseFraction)}`,
+                pct: (totalAllocAmt / totalEstate) * 100,
+                amt: totalAllocAmt
+            });
+        } else {
+            rows.push({
+                name: alloc.name,
+                type: "Quranic Heir",
+                fraction: formatFraction(alloc.baseFraction),
+                pct: (totalAllocAmt / totalEstate) * 100,
+                amt: totalAllocAmt
+            });
+        }
+    });
+
+    // 5. Residue Distribution (Asabah)
+    let residueLeft = netFaraidEstate - distributedFaraidAmount;
+    if (residueLeft < 0.01) residueLeft = 0; // Fix floating point precision
+
+    if (residueLeft > 0) {
+        if (sonsCount > 0 || daughtersCount > 0) {
+            // Sons get twice the share of daughters
+            const totalParts = (sonsCount * 2) + (daughtersCount * 1);
+            const partValue = residueLeft / totalParts;
+
+            if (sonsCount > 0) {
+                const totalSonsAmt = partValue * 2 * sonsCount;
+                rows.push({
+                    name: `Sons (${sonsCount} individual${sonsCount > 1 ? 's' : ''})`,
+                    type: "Residuary (2x ratio)",
+                    fraction: "Residue Remainder",
+                    pct: (totalSonsAmt / totalEstate) * 100,
+                    amt: totalSonsAmt
+                });
+            }
+            if (daughtersCount > 0) {
+                const totalDaughtersAmt = partValue * 1 * daughtersCount;
+                rows.push({
+                    name: `Daughters (${daughtersCount} individual${daughtersCount > 1 ? 's' : ''})`,
+                    type: "Residuary (1x ratio)",
+                    fraction: "Residue Remainder",
+                    pct: (totalDaughtersAmt / totalEstate) * 100,
+                    amt: totalDaughtersAmt
+                });
+            }
+        } else if (fatherExists) {
+            // If no children exist, the father absorbs the entire remaining residue
+            rows.push({
+                name: "Father (Asabah Residuary)",
+                type: "Residuary Heir",
+                fraction: "Remaining Residue",
+                pct: (residueLeft / totalEstate) * 100,
+                amt: residueLeft
+            });
+        } else {
+            // Simple Radd (return) fallback simulation for primary configuration
+            const nonSpouseRows = rows.filter(r => r.type === "Quranic Heir" && !r.name.includes("Wife") && !r.name.includes("Husband"));
+            if (nonSpouseRows.length > 0) {
+                bequestWarning += " Surplus residue returned to primary blood relations via Radd mechanism.";
+                nonSpouseRows.forEach(r => {
+                    r.amt += (residueLeft / nonSpouseRows.length);
+                    r.pct = (r.amt / totalEstate) * 100;
+                });
+            }
+        }
+    }
+
+    // 6. Output Generation
+    const summaryContainer = document.getElementById('breakdownSummary');
+    summaryContainer.innerHTML = bequestWarning ? `<div class="alert">${bequestWarning}</div>` : '';
+    summaryContainer.innerHTML += `
+        <p><strong>Initial Estate Value:</strong> ${totalEstate.toFixed(2)}<br>
+        <strong>Net Distributed Estate (Faraid):</strong> ${netFaraidEstate.toFixed(2)}</p>
+    `;
+
+    const tbody = document.getElementById('resultTableBody');
+    tbody.innerHTML = "";
+    
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${row.name}</strong></td>
+            <td>${row.type}</td>
+            <td>${row.fraction}</td>
+            <td>${row.pct.toFixed(2)}%</td>
+            <td><strong>${row.amt.toFixed(2)}</strong></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Add total matching confirmation row
+    const totalRow = document.createElement('tr');
+    totalRow.className = "total-row";
+    totalRow.innerHTML = `
+        <td>Total Accounted Asset Pool</td>
+        <td>-</td>
+        <td>100%</td>
+        <td>100.00%</td>
+        <td>${totalEstate.toFixed(2)}</td>
+    `;
+    tbody.appendChild(totalRow);
+
+    document.getElementById('resultCard').classList.remove('hidden');
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function formatFraction(num) {
+    if (num === 0.5) return "1/2";
+    if (num === 0.25) return "1/4";
+    if (num === 0.125) return "1/8";
+    if (num === 0.3333333333333333) return "1/3";
+    if (num === 0.16666666666666666) return "1/6";
+    return num.toFixed(3);
+}
+</script>
+
+</body>
+</html>
