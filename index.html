@@ -98,7 +98,7 @@
             background: var(--bg);
             color: var(--text);
             width: 100%;
-            -webkit-appearance: none; /* Mobile Safari fix */
+            -webkit-appearance: none;
         }
 
         input:focus, select:focus {
@@ -167,7 +167,6 @@
 
         .hidden { display: none; }
 
-        /* --- MOBILE OUTCOME CARDS REPLACING TABLE --- */
         .results-list {
             display: flex;
             flex-direction: column;
@@ -272,8 +271,15 @@
                 </div>
             </div>
 
-            <h2>2. Deceased Details</h2>
+            <h2>2. Methodology & Deceased Details</h2>
             <div class="grid">
+                <div class="form-group">
+                    <label for="madhabChoice">Jurisprudence (Madhab) View</label>
+                    <select id="madhabChoice">
+                        <option value="majority">Majority (Shafi'i / Maliki / Hanbali)</option>
+                        <option value="hanafi">Hanafi Opinion</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Gender of Deceased</label>
                     <div class="radio-group">
@@ -283,7 +289,7 @@
                 </div>
             </div>
 
-            <h2>3. Surviving Primary Heirs</h2>
+            <h2>3. Surviving Relatives</h2>
             <div class="grid">
                 <div class="form-group" id="wifeGroup">
                     <label for="wivesCount">Number of Surviving Wives</label>
@@ -301,6 +307,11 @@
                 </div>
                 <div class="form-group">
                     <label class="checkbox-group">
+                        <input type="checkbox" id="grandfatherExists"> Paternal Grandfather is alive
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-group">
                         <input type="checkbox" id="motherExists" checked> Mother is alive
                     </label>
                 </div>
@@ -312,18 +323,25 @@
                     <label for="daughtersCount">Number of Daughters</label>
                     <input type="number" id="daughtersCount" min="0" value="1">
                 </div>
+                <div class="form-group">
+                    <label for="brothersCount">Number of Full Brothers</label>
+                    <input type="number" id="brothersCount" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="sistersCount">Number of Full Sisters</label>
+                    <input type="number" id="sistersCount" min="0" value="0">
+                </div>
             </div>
 
             <button type="submit">Calculate Distribution</button>
         </form>
     </div>
 
-    <!-- Output Mobile Card Deck Container -->
+    <!-- Output View Component -->
     <div id="resultCard" class="card hidden">
         <h1>Distribution Breakdown</h1>
         <div id="breakdownSummary"></div>
         
-        <!-- Mobile card list replaces the old table tag structure entirely -->
         <div class="results-list" id="mobileResultsContainer"></div>
         
         <div class="result-total-card">
@@ -381,15 +399,49 @@ function calculateEstate(event) {
 
     const netFaraidEstate = netAfterDebts - (wills + sadakah);
 
+    const madhab = document.getElementById('madhabChoice').value;
     const gender = document.querySelector('input[name="gender"]:checked').value;
     const wivesCount = parseInt(document.getElementById('wivesCount').value) || 0;
     const husbandExists = document.getElementById('husbandExists').checked;
     const fatherExists = document.getElementById('fatherExists').checked;
+    const grandfatherExists = document.getElementById('grandfatherExists').checked;
     const motherExists = document.getElementById('motherExists').checked;
     const sonsCount = parseInt(document.getElementById('sonsCount').value) || 0;
     const daughtersCount = parseInt(document.getElementById('daughtersCount').value) || 0;
+    
+    let brothersCount = parseInt(document.getElementById('brothersCount').value) || 0;
+    let sistersCount = parseInt(document.getElementById('sistersCount').value) || 0;
 
     const hasChildren = (sonsCount > 0 || daughtersCount > 0);
+
+    // --- ADVANCED SIBLING EXCLUSION (HAJB) WITH JURISPRUDENCE OPTIONS ---
+    let siblingsExcluded = false;
+    let grandfatherActsAsFather = false;
+
+    if (fatherExists || sonsCount > 0) {
+        siblingsExcluded = true;
+    }
+
+    if (grandfatherExists && !fatherExists) {
+        if (madhab === 'hanafi') {
+            siblingsExcluded = true;
+            grandfatherActsAsFather = true;
+            bequestWarning += " [Hanafi View applied]: The surviving grandfather replaces the father line, blocking all siblings.";
+        } else {
+            grandfatherActsAsFather = false;
+            if (brothersCount > 0 || sistersCount > 0) {
+                bequestWarning += " [Majority View applied]: Grandfather shares the remaining residue dynamically with siblings via custom formulas.";
+            }
+        }
+    }
+
+    if (siblingsExcluded) {
+        if (brothersCount > 0 || sistersCount > 0) {
+            bequestWarning += " Note: Full brothers/sisters are completely excluded (Hajb) from the active inheritance share list.";
+        }
+        brothersCount = 0;
+        sistersCount = 0;
+    }
 
     let rows = [];
     
@@ -402,32 +454,42 @@ function calculateEstate(event) {
 
     if (gender === 'male' && wivesCount > 0) {
         const wifeFraction = hasChildren ? (1/8) : (1/4);
-        mathAllocations.push({ id: 'wives', name: `Wife/Wives (Shared between ${wivesCount})`, baseFraction: wifeFraction, individualCount: wivesCount });
+        mathAllocations.push({ id: 'wives', name: `Wife/Wives (Shared between ${wivesCount})`, baseFraction: wifeFraction });
         fixedSharesTotal += wifeFraction;
     } else if (gender === 'female' && husbandExists) {
         const husbandFraction = hasChildren ? (1/4) : (1/2);
-        mathAllocations.push({ id: 'husband', name: "Husband", baseFraction: husbandFraction, individualCount: 1 });
+        mathAllocations.push({ id: 'husband', name: "Husband", baseFraction: husbandFraction });
         fixedSharesTotal += husbandFraction;
     }
 
     if (motherExists) {
-        const motherFraction = hasChildren ? (1/6) : (1/3);
-        mathAllocations.push({ id: 'mother', name: "Mother", baseFraction: motherFraction, individualCount: 1 });
+        const totalSiblings = brothersCount + sistersCount;
+        const motherFraction = (hasChildren || totalSiblings >= 2) ? (1/6) : (1/3);
+        mathAllocations.push({ id: 'mother', name: "Mother", baseFraction: motherFraction });
         fixedSharesTotal += motherFraction;
     }
 
-    if (fatherExists) {
-        const fatherBaseFraction = hasChildren ? (1/6) : 0; 
-        if (fatherBaseFraction > 0) {
-            mathAllocations.push({ id: 'father', name: "Father (Fixed Share)", baseFraction: fatherBaseFraction, individualCount: 1 });
-            fixedSharesTotal += fatherBaseFraction;
+    if (fatherExists || grandfatherActsAsFather) {
+        const primaryMaleAscendantFraction = hasChildren ? (1/6) : 0; 
+        if (primaryMaleAscendantFraction > 0) {
+            const displayName = fatherExists ? "Father (Fixed Share)" : "Grandfather (Hanafi Fixed Share)";
+            mathAllocations.push({ id: 'father', name: displayName, baseFraction: primaryMaleAscendantFraction });
+            fixedSharesTotal += primaryMaleAscendantFraction;
         }
+    }
+
+    let sistersHaveFixedShare = false;
+    if (!siblingsExcluded && !grandfatherExists && brothersCount === 0 && sistersCount > 0 && !hasChildren) {
+        sistersHaveFixedShare = true;
+        const sisterFraction = (sistersCount === 1) ? (1/2) : (2/3);
+        mathAllocations.push({ id: 'sisters-fixed', name: "Full Sister(s) Fixed Allotment", baseFraction: sisterFraction });
+        fixedSharesTotal += sisterFraction;
     }
 
     let scaleFactor = 1.0;
     if (fixedSharesTotal > 1.0) {
         scaleFactor = 1.0 / fixedSharesTotal;
-        bequestWarning += " Proportional reduction (Awl) was applied because the primary Quranic fractions exceeded 1.0.";
+        bequestWarning += " Proportional reduction (Awl) was applied because the total Quranic fractions exceeded 1.0.";
     }
 
     let distributedFaraidAmount = 0;
@@ -455,45 +517,71 @@ function calculateEstate(event) {
 
             if (sonsCount > 0) {
                 const totalSonsAmt = partValue * 2 * sonsCount;
-                rows.push({
-                    name: `Sons (${sonsCount})`,
-                    type: "Residuary Heir",
-                    fraction: "2x Ratio Split of Residue",
-                    pct: (totalSonsAmt / totalEstate) * 100,
-                    amt: totalSonsAmt
-                });
+                rows.push({ name: `Sons (${sonsCount})`, type: "Residuary Heir", fraction: "2:1 Child Ratio", pct: (totalSonsAmt / totalEstate) * 100, amt: totalSonsAmt });
             }
             if (daughtersCount > 0) {
                 const totalDaughtersAmt = partValue * 1 * daughtersCount;
-                rows.push({
-                    name: `Daughters (${daughtersCount})`,
-                    type: "Residuary Heir",
-                    fraction: "1x Ratio Split of Residue",
-                    pct: (totalDaughtersAmt / totalEstate) * 100,
-                    amt: totalDaughtersAmt
-                });
+                rows.push({ name: `Daughters (${daughtersCount})`, type: "Residuary Heir", fraction: "1:1 Child Ratio", pct: (totalDaughtersAmt / totalEstate) * 100, amt: totalDaughtersAmt });
             }
         } else if (fatherExists) {
-            rows.push({
-                name: "Father (Asabah Residuary)",
-                type: "Residuary Heir",
-                fraction: "Absorbs Remaining Residue",
-                pct: (residueLeft / totalEstate) * 100,
-                amt: residueLeft
-            });
+            rows.push({ name: "Father (Asabah Residuary)", type: "Residuary Heir", fraction: "Absorbs Remaining Residue", pct: (residueLeft / totalEstate) * 100, amt: residueLeft });
         } else {
-            const nonSpouseRows = rows.filter(r => r.type.includes("Quranic") && !r.name.includes("Wife") && !r.name.includes("Husband"));
-            if (nonSpouseRows.length > 0) {
-                bequestWarning += " Surplus residue returned to primary blood relations via Radd mechanism.";
-                nonSpouseRows.forEach(r => {
-                    r.amt += (residueLeft / nonSpouseRows.length);
-                    r.pct = (r.amt / totalEstate) * 100;
-                });
+            const grandfatherSharingInResidue = (grandfatherExists && !grandfatherActsAsFather);
+            
+            if (grandfatherSharingInResidue || brothersCount > 0 || (sistersCount > 0 && !sistersHaveFixedShare)) {
+                let gfResidueAmt = 0;
+                let siblingResiduePool = residueLeft;
+
+                if (grandfatherSharingInResidue) {
+                    const flatOneSixthOption = netFaraidEstate / 6;
+                    const muqasamahParts = 2 + (brothersCount * 2) + (sistersCount * 1);
+                    const muqasamahOption = (residueLeft / muqasamahParts) * 2;
+                    
+                    if (flatOneSixthOption > muqasamahOption) {
+                        gfResidueAmt = flatOneSixthOption;
+                        if (gfResidueAmt > residueLeft) gfResidueAmt = residueLeft;
+                        siblingResiduePool = residueLeft - gfResidueAmt;
+                        rows.push({ name: "Grandfather (Majority 1/6 Floor)", type: "Residuary Ascendant", fraction: "Guaranteed 1/6 Minimum Allotment", pct: (gfResidueAmt / totalEstate) * 100, amt: gfResidueAmt });
+                    } else {
+                        gfResidueAmt = muqasamahOption;
+                        siblingResiduePool = residueLeft - gfResidueAmt;
+                        rows.push({ name: "Grandfather (Muqasamah Split)", type: "Residuary Ascendant", fraction: "Shares residue with siblings like a brother", pct: (gfResidueAmt / totalEstate) * 100, amt: gfResidueAmt });
+                    }
+                }
+
+                if (siblingResiduePool > 0 && (brothersCount > 0 || sistersCount > 0)) {
+                    const siblingParts = (brothersCount * 2) + (sistersCount * 1);
+                    if (siblingParts > 0) {
+                        const siblingPartValue = siblingResiduePool / siblingParts;
+                        if (brothersCount > 0) {
+                            const totalBrothersAmt = siblingPartValue * 2 * brothersCount;
+                            rows.push({ name: `Full Brothers (${brothersCount})`, type: "Residuary Sibling", fraction: "2:1 Sibling Ratio", pct: (totalBrothersAmt / totalEstate) * 100, amt: totalBrothersAmt });
+                        }
+                        if (sistersCount > 0) {
+                            const totalSistersAmt = siblingPartValue * 1 * sistersCount;
+                            rows.push({ name: `Full Sisters (${sistersCount})`, type: "Residuary Sibling", fraction: "1:1 Sibling Ratio", pct: (totalSistersAmt / totalEstate) * 100, amt: totalSistersAmt });
+                        }
+                    }
+                } else if (siblingResiduePool > 0 && grandfatherSharingInResidue) {
+                    rows[rows.length - 1].amt += siblingResiduePool;
+                    rows[rows.length - 1].pct = (rows[rows.length - 1].amt / totalEstate) * 100;
+                }
+                
+            } else if (grandfatherExists && grandfatherActsAsFather === false) {
+                rows.push({ name: "Grandfather (Asabah Residuary)", type: "Residuary Heir", fraction: "Absorbs Residue Pool", pct: (residueLeft / totalEstate) * 100, amt: residueLeft });
+            } else {
+                const nonSpouseRows = rows.filter(r => r.type.includes("Quranic") && !r.name.includes("Wife") && !r.name.includes("Husband"));
+                if (nonSpouseRows.length > 0) {
+                    bequestWarning += " Surplus residue returned to primary blood relations via Radd mechanism.";
+                    nonSpouseRows.forEach(r => {
+                        r.amt += (residueLeft / nonSpouseRows.length);
+                        r.pct = (r.amt / totalEstate) * 100;
+                    });
+                }
             }
         }
     }
 
-    // Render Logic Updates
     const summaryContainer = document.getElementById('breakdownSummary');
     summaryContainer.innerHTML = bequestWarning ? `<div class="alert">${bequestWarning}</div>` : '';
     summaryContainer.innerHTML += `
@@ -506,7 +594,6 @@ function calculateEstate(event) {
     const cardContainer = document.getElementById('mobileResultsContainer');
     cardContainer.innerHTML = "";
     
-    // Inject custom UI item wrappers
     rows.forEach(row => {
         const item = document.createElement('div');
         item.className = "result-item";
